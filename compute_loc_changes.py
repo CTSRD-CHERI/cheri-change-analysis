@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import copy
 import json
 import multiprocessing
@@ -260,7 +261,7 @@ class Project:
     extra_override_text: Optional[str] = None
 
     def run_cloc(self) -> CLOCReport:
-        git_repo = repos_root / self.repo_subdir
+        git_repo = args.source_root / self.repo_subdir
         assert git_repo.is_dir(), git_repo
         out_json = Path(this_dir, "reports", self.project_name + ".report.json")
         diff_json_suffix = ".diff." + self.baseline.hash(git_repo) + "." + self.cheri.hash(git_repo)
@@ -336,14 +337,24 @@ def cheribsd_purecap_subdir(name, *, extra_args, commented=False, **kwargs):
 
 
 this_dir = Path(__file__).parent.absolute()
-local_scratch = Path("/local/scratch/alr48/cheri")
-if local_scratch.is_dir():
-    repos_root = local_scratch
-else:
-    repos_root = Path.home() / "cheri"
+
+
+def default_repos_root() -> Path:
+    local_scratch = Path("/local/scratch/alr48/cheri")
+    if local_scratch.is_dir():
+        return local_scratch
+    else:
+        return Path.home() / "cheri"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--verbose", action="store_true")
+parser.add_argument("--source-root", type=lambda x: Path(x).absolute(), default=default_repos_root())
+args = parser.parse_args()
 
 # WARNING: can't have a trailing / in the --match-d= option. Need to use (/|$)?
-projects = [
+
+# region  Data for https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-949.html
+thesis_projects = [
     Project("nginx", project_name="NGINX",
             baseline=GitRef("baseline", "ff16c6f99c6cc0959d1632fb4030730ba27657ef"),
             cheri=GitRef("master", "d5794c5167f10e2230078dd798e4033beb1b1b6b"),
@@ -455,14 +466,26 @@ projects = [
             cheri=GitRef("master", "a7c68cd6e7ddacba2081bc58e0db90d348ea4830"),
             extra_efficiency=None, extra_offset=None, extra_ptrcmp=None, extra_cherish=False, extra_other=True),
 ]
+# endregion
+
+# Enter you projects here:
+projects = [
+    Project("nginx", project_name="NGINX",
+            baseline=GitRef("baseline", "ff16c6f99c6cc0959d1632fb4030730ba27657ef"),
+            cheri=GitRef("master", "d5794c5167f10e2230078dd798e4033beb1b1b6b"),
+            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=False,
+            extra_notes="$\\approx$~50\\% changes non-essential"),
+]
+
 reports = []
 for project in projects:
     reports.append(project.run_cloc())
 
-reports.append(CLOCReport.no_chages_report("SPECINT2006", {"C": 218398, "C++": 25606},
-                                           ClocSummary(blank=47386, comment=49755, code=258461, nFiles=466)))
-reports.append(CLOCReport.no_chages_report("libxml2", {"C": 100},
-                                           ClocSummary(blank=29407, comment=57482, code=231071, nFiles=184)))
+# No changes were required for SPEC or libxml2, these values are just a simple cloc count without the diff flag
+# reports.append(CLOCReport.no_chages_report("SPECINT2006", {"C": 218398, "C++": 25606},
+#                                            ClocSummary(blank=47386, comment=49755, code=258461, nFiles=466)))
+# reports.append(CLOCReport.no_chages_report("libxml2", {"C": 100},
+#                                            ClocSummary(blank=29407, comment=57482, code=231071, nFiles=184)))
 for report in reports:
     report.print_info()
 
@@ -496,7 +519,8 @@ latex += """
 """
 
 # Save the table
-print(latex)
+if args.verbose:
+    print(latex)
 Path(this_dir / "table-data-rows.tex").write_text(table_body)
 Path(this_dir / "table.tex").write_text(latex)
 
@@ -510,10 +534,12 @@ for i, report in enumerate(reports):
     ensure_unique_project_names.add(report.project_name_for_latex)
 
 worst_report = max(reports, key=operator.attrgetter("changed_loc_percent"))
-print(worst_report)
+if args.verbose:
+    print(worst_report)
 macro_defs += "\n\n\\newcommand*{\\ChangedSlocMax}{" + str(worst_report.changed_loc_abs) + "}\n"
 macro_defs += "\\newcommand*{\\ChangedSlocMaxRatio}{" + "{:.2f}\\%".format(worst_report.changed_loc_percent) + "}\n"
 macro_defs += "\\newcommand*{\\ChangedSlocMaxProject}{" + str(worst_report.project_name_for_latex) + "}\n"
 
-print(macro_defs)
+if args.verbose:
+    print(macro_defs)
 Path(this_dir / "changes-macros.tex").write_text(macro_defs)

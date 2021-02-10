@@ -1,0 +1,30 @@
+{
+  "C++": {
+    "blank": 1678,
+    "code": 13087,
+    "comment": 944,
+    "nFiles": 51
+  },
+  "C/C++ Header": {
+    "blank": 18232,
+    "code": 101314,
+    "comment": 19325,
+    "nFiles": 176
+  },
+  "SUM": {
+    "blank": 19910,
+    "code": 114401,
+    "comment": 20269,
+    "nFiles": 227
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 21.3842480182648,
+    "files_per_second": 10.615290273762,
+    "lines_per_second": 7228.68533267898,
+    "n_files": 227,
+    "n_lines": 154580,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/libc++ (excluding tests).report.json.82040a73128e2dbb8de98a14639c6b10975d8165"
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "SUM": {
+    "added": {
+      "blank": 4437,
+      "code": 27513,
+      "comment": 12219,
+      "nFiles": 90
+    },
+    "modified": {
+      "blank": 0,
+      "code": 5210,
+      "comment": 126,
+      "nFiles": 590
+    },
+    "removed": {
+      "blank": 103,
+      "code": 1382,
+      "comment": 327,
+      "nFiles": 7
+    },
+    "same": {
+      "blank": 341784,
+      "code": 2433485,
+      "comment": 736909,
+      "nFiles": 7054
+    }
+  },
+  "added": {
+    "Assembly": {
+      "blank": 463,
+      "code": 3107,
+      "comment": 2007,
+      "nFiles": 6
+    },
+    "C": {
+      "blank": 3168,
+      "code": 18070,
+      "comment": 6632,
+      "nFiles": 37
+    },
+    "C++": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 806,
+      "code": 6336,
+      "comment": 3580,
+      "nFiles": 47
+    }
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 157.262482881546,
+    "files_per_second": 49.2234375177118,
+    "lines_per_second": 22659.5366848183,
+    "n_files": 7741,
+    "n_lines": 3563495,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/purecap kernel (no drivers).report.json.diff.e10b4e4c363cb013ee6c318100cc04d2bd620588.b99dab1985e4539c0619971babeba7971d993b09"
+  },
+  "modified": {
+    "Assembly": {
+      "blank": 0,
+      "code": 122,
+      "comment": 28,
+      "nFiles": 9
+    },
+    "C": {
+      "blank": 0,
+      "code": 4474,
+      "comment": 57,
+      "nFiles": 402
+    },
+    "C++": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 614,
+      "comment": 41,
+      "nFiles": 179
+    }
+  },
+  "removed": {
+    "Assembly": {
+      "blank": 0,
+      "code": 86,
+      "comment": 6,
+      "nFiles": 0
+    },
+    "C": {
+      "blank": 72,
+      "code": 1057,
+      "comment": 271,
+      "nFiles": 6
+    },
+    "C++": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 31,
+      "code": 239,
+      "comment": 50,
+      "nFiles": 1
+    }
+  },
+  "same": {
+    "Assembly": {
+      "blank": 5373,
+      "code": 43350,
+      "comment": 16938,
+      "nFiles": 189
+    },
+    "C": {
+      "blank": 250013,
+      "code": 1765277,
+      "comment": 427372,
+      "nFiles": 3084
+    },
+    "C++": {
+      "blank": 97,
+      "code": 995,
+      "comment": 228,
+      "nFiles": 5
+    },
+    "C/C++ Header": {
+      "blank": 86301,
+      "code": 623863,
+      "comment": 292371,
+      "nFiles": 3776
+    }
+  }
+}

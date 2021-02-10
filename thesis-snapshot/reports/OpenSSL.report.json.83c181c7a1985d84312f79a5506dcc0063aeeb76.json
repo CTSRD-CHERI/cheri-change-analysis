@@ -1,0 +1,36 @@
+{
+  "Assembly": {
+    "blank": 597,
+    "code": 5968,
+    "comment": 1116,
+    "nFiles": 8
+  },
+  "C": {
+    "blank": 33344,
+    "code": 243562,
+    "comment": 33337,
+    "nFiles": 724
+  },
+  "C/C++ Header": {
+    "blank": 6516,
+    "code": 40047,
+    "comment": 10017,
+    "nFiles": 220
+  },
+  "SUM": {
+    "blank": 40457,
+    "code": 289577,
+    "comment": 44470,
+    "nFiles": 952
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 41.1037290096283,
+    "files_per_second": 23.1609156380191,
+    "lines_per_second": 9111.19280472764,
+    "n_files": 952,
+    "n_lines": 374504,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/OpenSSL.report.json.83c181c7a1985d84312f79a5506dcc0063aeeb76"
+  }
+}

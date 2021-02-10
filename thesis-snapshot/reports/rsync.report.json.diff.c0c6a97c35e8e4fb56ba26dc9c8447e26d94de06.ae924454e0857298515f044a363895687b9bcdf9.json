@@ -1,0 +1,94 @@
+{
+  "SUM": {
+    "added": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "modified": {
+      "blank": 0,
+      "code": 3,
+      "comment": 0,
+      "nFiles": 2
+    },
+    "removed": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "same": {
+      "blank": 6280,
+      "code": 40953,
+      "comment": 8960,
+      "nFiles": 103
+    }
+  },
+  "added": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 3.94693684577942,
+    "files_per_second": 26.6029085599076,
+    "lines_per_second": 14237.8766612625,
+    "n_files": 105,
+    "n_lines": 56196,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/rsync.report.json.diff.c0c6a97c35e8e4fb56ba26dc9c8447e26d94de06.ae924454e0857298515f044a363895687b9bcdf9"
+  },
+  "modified": {
+    "C": {
+      "blank": 0,
+      "code": 3,
+      "comment": 0,
+      "nFiles": 2
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "removed": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "same": {
+    "C": {
+      "blank": 5310,
+      "code": 37035,
+      "comment": 6637,
+      "nFiles": 73
+    },
+    "C/C++ Header": {
+      "blank": 970,
+      "code": 3918,
+      "comment": 2323,
+      "nFiles": 30
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "Assembly": {
+    "blank": 652,
+    "code": 3955,
+    "comment": 977,
+    "nFiles": 7
+  },
+  "C": {
+    "blank": 60576,
+    "code": 245688,
+    "comment": 57573,
+    "nFiles": 414
+  },
+  "C++": {
+    "blank": 193337,
+    "code": 820029,
+    "comment": 326831,
+    "nFiles": 2144
+  },
+  "C/C++ Header": {
+    "blank": 96694,
+    "code": 434965,
+    "comment": 159576,
+    "nFiles": 2551
+  },
+  "SUM": {
+    "blank": 351259,
+    "code": 1504637,
+    "comment": 544957,
+    "nFiles": 5116
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 12.3971960544586,
+    "files_per_second": 412.673960912318,
+    "lines_per_second": 193660.968936322,
+    "n_files": 5116,
+    "n_lines": 2400853,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/QtBase (excluding tests).report.json.33de53d5ec4c3f58b4960e835911215388e38235"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "C": {
+    "blank": 43345,
+    "code": 123568,
+    "comment": 4549,
+    "nFiles": 220
+  },
+  "C++": {
+    "blank": 8,
+    "code": 18,
+    "comment": 3,
+    "nFiles": 1
+  },
+  "C/C++ Header": {
+    "blank": 4237,
+    "code": 8423,
+    "comment": 993,
+    "nFiles": 113
+  },
+  "SUM": {
+    "blank": 47590,
+    "code": 132009,
+    "comment": 5545,
+    "nFiles": 334
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 2.8443329334259,
+    "files_per_second": 117.426478481093,
+    "lines_per_second": 65092.2393170761,
+    "n_files": 334,
+    "n_lines": 185144,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/NGINX.report.json.d5794c5167f10e2230078dd798e4033beb1b1b6b"
+  }
+}

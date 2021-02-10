@@ -1,0 +1,36 @@
+{
+  "C": {
+    "blank": 21397,
+    "code": 194344,
+    "comment": 71129,
+    "nFiles": 248
+  },
+  "C++": {
+    "blank": 29,
+    "code": 98,
+    "comment": 52,
+    "nFiles": 3
+  },
+  "C/C++ Header": {
+    "blank": 1101,
+    "code": 6455,
+    "comment": 7471,
+    "nFiles": 49
+  },
+  "SUM": {
+    "blank": 22527,
+    "code": 200897,
+    "comment": 78652,
+    "nFiles": 300
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 4.71928286552429,
+    "files_per_second": 63.5689804041172,
+    "lines_per_second": 64008.8777485137,
+    "n_files": 300,
+    "n_lines": 302076,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/SQLite.report.json.41e4b8906c1480487847f1ac8515b1573c3b22f8"
+  }
+}

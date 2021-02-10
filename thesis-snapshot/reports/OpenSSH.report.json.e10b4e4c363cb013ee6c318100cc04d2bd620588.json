@@ -1,0 +1,36 @@
+{
+  "C": {
+    "blank": 12652,
+    "code": 91640,
+    "comment": 15515,
+    "nFiles": 270
+  },
+  "C++": {
+    "blank": 12,
+    "code": 55,
+    "comment": 1,
+    "nFiles": 2
+  },
+  "C/C++ Header": {
+    "blank": 2548,
+    "code": 9943,
+    "comment": 4588,
+    "nFiles": 124
+  },
+  "SUM": {
+    "blank": 15212,
+    "code": 101638,
+    "comment": 20104,
+    "nFiles": 396
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 28.3489181995392,
+    "files_per_second": 13.9687869996548,
+    "lines_per_second": 4831.01326957253,
+    "n_files": 396,
+    "n_lines": 136954,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/OpenSSH.report.json.e10b4e4c363cb013ee6c318100cc04d2bd620588"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "Assembly": {
+    "blank": 1026,
+    "code": 5071,
+    "comment": 562,
+    "nFiles": 6
+  },
+  "C": {
+    "blank": 2195,
+    "code": 18028,
+    "comment": 1747,
+    "nFiles": 38
+  },
+  "C++": {
+    "blank": 249055,
+    "code": 1127434,
+    "comment": 212078,
+    "nFiles": 5624
+  },
+  "C/C++ Header": {
+    "blank": 148646,
+    "code": 514537,
+    "comment": 274304,
+    "nFiles": 7509
+  },
+  "SUM": {
+    "blank": 400922,
+    "code": 1665070,
+    "comment": 488691,
+    "nFiles": 13177
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 72.5929148197174,
+    "files_per_second": 181.519092224423,
+    "lines_per_second": 35191.9055233488,
+    "n_files": 13177,
+    "n_lines": 2554683,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/QtWebkit.report.json.4ce8ebc4094512b9916bfa5984065e95ac97c9d8"
+  }
+}

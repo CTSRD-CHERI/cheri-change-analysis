@@ -1,0 +1,36 @@
+{
+  "Assembly": {
+    "blank": 17,
+    "code": 69,
+    "comment": 38,
+    "nFiles": 3
+  },
+  "C": {
+    "blank": 136442,
+    "code": 681543,
+    "comment": 265111,
+    "nFiles": 1204
+  },
+  "C/C++ Header": {
+    "blank": 13250,
+    "code": 58014,
+    "comment": 36879,
+    "nFiles": 739
+  },
+  "SUM": {
+    "blank": 149709,
+    "code": 739626,
+    "comment": 302028,
+    "nFiles": 1946
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 8.81548404693604,
+    "files_per_second": 220.747946413262,
+    "lines_per_second": 135144.365715695,
+    "n_files": 1946,
+    "n_lines": 1191363,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/PostgreSQL.report.json.83f3bec1f43a7dc92e95f273d49748dc131c567e"
+  }
+}

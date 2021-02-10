@@ -1,0 +1,42 @@
+{
+  "Assembly": {
+    "blank": 1545,
+    "code": 7891,
+    "comment": 4341,
+    "nFiles": 160
+  },
+  "C": {
+    "blank": 1928,
+    "code": 8914,
+    "comment": 3961,
+    "nFiles": 209
+  },
+  "C++": {
+    "blank": 12097,
+    "code": 79818,
+    "comment": 11119,
+    "nFiles": 392
+  },
+  "C/C++ Header": {
+    "blank": 6119,
+    "code": 33485,
+    "comment": 9115,
+    "nFiles": 305
+  },
+  "SUM": {
+    "blank": 21689,
+    "code": 130108,
+    "comment": 28536,
+    "nFiles": 1066
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 14.3304810523987,
+    "files_per_second": 74.386895743571,
+    "lines_per_second": 12583.8762383915,
+    "n_files": 1066,
+    "n_lines": 180333,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/compiler-rt (excluding tests).report.json.6b56ad164cedab90a9b79bfd189a1a27622a24fa"
+  }
+}

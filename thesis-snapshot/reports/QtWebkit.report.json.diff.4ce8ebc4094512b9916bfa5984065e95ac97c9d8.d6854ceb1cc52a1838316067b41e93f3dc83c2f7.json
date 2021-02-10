@@ -1,0 +1,142 @@
+{
+  "SUM": {
+    "added": {
+      "blank": 80,
+      "code": 1181,
+      "comment": 83,
+      "nFiles": 3
+    },
+    "modified": {
+      "blank": 0,
+      "code": 465,
+      "comment": 0,
+      "nFiles": 106
+    },
+    "removed": {
+      "blank": 2,
+      "code": 15,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "same": {
+      "blank": 390044,
+      "code": 1664590,
+      "comment": 488691,
+      "nFiles": 13071
+    }
+  },
+  "added": {
+    "Assembly": {
+      "blank": 1,
+      "code": 193,
+      "comment": 12,
+      "nFiles": 0
+    },
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 45,
+      "code": 578,
+      "comment": 36,
+      "nFiles": 1
+    },
+    "C/C++ Header": {
+      "blank": 34,
+      "code": 410,
+      "comment": 35,
+      "nFiles": 2
+    }
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 478.517898797989,
+    "files_per_second": 27.5433793241746,
+    "lines_per_second": 5318.82089759502,
+    "n_files": 13180,
+    "n_lines": 2545151,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/QtWebkit.report.json.diff.4ce8ebc4094512b9916bfa5984065e95ac97c9d8.d6854ceb1cc52a1838316067b41e93f3dc83c2f7"
+  },
+  "modified": {
+    "Assembly": {
+      "blank": 0,
+      "code": 220,
+      "comment": 0,
+      "nFiles": 3
+    },
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 0,
+      "code": 80,
+      "comment": 0,
+      "nFiles": 44
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 165,
+      "comment": 0,
+      "nFiles": 59
+    }
+  },
+  "removed": {
+    "Assembly": {
+      "blank": 0,
+      "code": 9,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 0,
+      "code": 4,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 2,
+      "code": 2,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "same": {
+    "Assembly": {
+      "blank": 23,
+      "code": 4842,
+      "comment": 562,
+      "nFiles": 3
+    },
+    "C": {
+      "blank": 2195,
+      "code": 18028,
+      "comment": 1747,
+      "nFiles": 38
+    },
+    "C++": {
+      "blank": 243188,
+      "code": 1127350,
+      "comment": 212078,
+      "nFiles": 5580
+    },
+    "C/C++ Header": {
+      "blank": 144638,
+      "code": 514370,
+      "comment": 274304,
+      "nFiles": 7450
+    }
+  }
+}

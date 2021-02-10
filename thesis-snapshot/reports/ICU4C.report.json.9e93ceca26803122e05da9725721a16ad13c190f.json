@@ -1,0 +1,36 @@
+{
+  "C": {
+    "blank": 13682,
+    "code": 93458,
+    "comment": 11116,
+    "nFiles": 136
+  },
+  "C++": {
+    "blank": 55997,
+    "code": 367349,
+    "comment": 75335,
+    "nFiles": 706
+  },
+  "C/C++ Header": {
+    "blank": 21490,
+    "code": 73380,
+    "comment": 110087,
+    "nFiles": 711
+  },
+  "SUM": {
+    "blank": 91169,
+    "code": 534187,
+    "comment": 196538,
+    "nFiles": 1553
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 5.82525610923767,
+    "files_per_second": 266.597720491166,
+    "lines_per_second": 141091.478998948,
+    "n_files": 1553,
+    "n_lines": 821894,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/ICU4C.report.json.9e93ceca26803122e05da9725721a16ad13c190f"
+  }
+}

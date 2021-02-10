@@ -1,0 +1,118 @@
+{
+  "SUM": {
+    "added": {
+      "blank": 2,
+      "code": 13,
+      "comment": 7,
+      "nFiles": 0
+    },
+    "modified": {
+      "blank": 0,
+      "code": 3,
+      "comment": 0,
+      "nFiles": 5
+    },
+    "removed": {
+      "blank": 0,
+      "code": 1,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "same": {
+      "blank": 90278,
+      "code": 534183,
+      "comment": 196538,
+      "nFiles": 1548
+    }
+  },
+  "added": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 0,
+      "code": 11,
+      "comment": 2,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 2,
+      "code": 2,
+      "comment": 5,
+      "nFiles": 0
+    }
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 20.5574531555176,
+    "files_per_second": 75.5443774212458,
+    "lines_per_second": 39938.0698469274,
+    "n_files": 1553,
+    "n_lines": 821025,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/ICU4C.report.json.diff.9e93ceca26803122e05da9725721a16ad13c190f.9c39ecaf34dc0e3dd4f2bbec474e4ce190473017"
+  },
+  "modified": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 0,
+      "code": 1,
+      "comment": 0,
+      "nFiles": 4
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 2,
+      "comment": 0,
+      "nFiles": 1
+    }
+  },
+  "removed": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C++": {
+      "blank": 0,
+      "code": 1,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "same": {
+    "C": {
+      "blank": 13682,
+      "code": 93458,
+      "comment": 11116,
+      "nFiles": 136
+    },
+    "C++": {
+      "blank": 55549,
+      "code": 367347,
+      "comment": 75335,
+      "nFiles": 702
+    },
+    "C/C++ Header": {
+      "blank": 21047,
+      "code": 73378,
+      "comment": 110087,
+      "nFiles": 710
+    }
+  }
+}

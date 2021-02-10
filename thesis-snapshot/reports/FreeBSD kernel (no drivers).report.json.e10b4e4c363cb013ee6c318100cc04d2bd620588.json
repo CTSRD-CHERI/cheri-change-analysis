@@ -1,0 +1,42 @@
+{
+  "Assembly": {
+    "blank": 5742,
+    "code": 43558,
+    "comment": 16972,
+    "nFiles": 198
+  },
+  "C": {
+    "blank": 309364,
+    "code": 1786003,
+    "comment": 429297,
+    "nFiles": 3515
+  },
+  "C++": {
+    "blank": 222,
+    "code": 2186,
+    "comment": 307,
+    "nFiles": 14
+  },
+  "C/C++ Header": {
+    "blank": 92885,
+    "code": 625054,
+    "comment": 292663,
+    "nFiles": 3963
+  },
+  "SUM": {
+    "blank": 408213,
+    "code": 2456801,
+    "comment": 739239,
+    "nFiles": 7690
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 32.37424492836,
+    "files_per_second": 237.534497469114,
+    "lines_per_second": 111330.874526209,
+    "n_files": 7690,
+    "n_lines": 3604253,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/FreeBSD kernel (no drivers).report.json.e10b4e4c363cb013ee6c318100cc04d2bd620588"
+  }
+}

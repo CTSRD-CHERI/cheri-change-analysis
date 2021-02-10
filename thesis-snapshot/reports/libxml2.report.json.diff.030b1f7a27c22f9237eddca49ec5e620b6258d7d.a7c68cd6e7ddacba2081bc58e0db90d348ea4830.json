@@ -1,0 +1,94 @@
+{
+  "SUM": {
+    "added": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "modified": {
+      "blank": 0,
+      "code": 3,
+      "comment": 0,
+      "nFiles": 1
+    },
+    "removed": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "same": {
+      "blank": 29386,
+      "code": 231068,
+      "comment": 57482,
+      "nFiles": 183
+    }
+  },
+  "added": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 8.98778796195984,
+    "files_per_second": 20.4722230629791,
+    "lines_per_second": 35374.5550457636,
+    "n_files": 184,
+    "n_lines": 317939,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/libxml2.report.json.diff.030b1f7a27c22f9237eddca49ec5e620b6258d7d.a7c68cd6e7ddacba2081bc58e0db90d348ea4830"
+  },
+  "modified": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 3,
+      "comment": 0,
+      "nFiles": 1
+    }
+  },
+  "removed": {
+    "C": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    },
+    "C/C++ Header": {
+      "blank": 0,
+      "code": 0,
+      "comment": 0,
+      "nFiles": 0
+    }
+  },
+  "same": {
+    "C": {
+      "blank": 26238,
+      "code": 203999,
+      "comment": 52825,
+      "nFiles": 111
+    },
+    "C/C++ Header": {
+      "blank": 3148,
+      "code": 27069,
+      "comment": 4657,
+      "nFiles": 72
+    }
+  }
+}

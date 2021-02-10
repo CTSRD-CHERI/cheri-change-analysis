@@ -1,0 +1,42 @@
+{
+  "Assembly": {
+    "blank": 6205,
+    "code": 46579,
+    "comment": 18973,
+    "nFiles": 204
+  },
+  "C": {
+    "blank": 309911,
+    "code": 1787821,
+    "comment": 434061,
+    "nFiles": 3523
+  },
+  "C++": {
+    "blank": 97,
+    "code": 995,
+    "comment": 228,
+    "nFiles": 5
+  },
+  "C/C++ Header": {
+    "blank": 93534,
+    "code": 630813,
+    "comment": 295992,
+    "nFiles": 4002
+  },
+  "SUM": {
+    "blank": 409747,
+    "code": 2466208,
+    "comment": 749254,
+    "nFiles": 7734
+  },
+  "header": {
+    "cloc_url": "github.com/AlDanial/cloc",
+    "cloc_version": "1.83",
+    "elapsed_seconds": 49.0278289318085,
+    "files_per_second": 157.747144193495,
+    "lines_per_second": 73941.8627947448,
+    "n_files": 7734,
+    "n_lines": 3625209,
+    "report_file": "/local/scratch/alr48/cheri/thesis/data/loc-changes/reports/purecap kernel (no drivers).report.json.b99dab1985e4539c0619971babeba7971d993b09"
+  }
+}

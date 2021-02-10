@@ -1,0 +1,34 @@
+
+\begin{table}[]
+\centering
+\begin{tabular}{@{}l|rr|rr@{}}
+\FL
+                      & \multicolumn{2}{c|}{Total counts} & \multicolumn{2}{c}{CHERI changes} \NN
+Project                 & \multicolumn{1}{c}{SLOC}   & \multicolumn{1}{c|}{files}  & \multicolumn{1}{c}{SLOC} &  \multicolumn{1}{c}{files} \ML
+% FreeBSD kernel (full-by-file)       & ????            &    5,513K &   12,211 &   31,738 (0.58\%) &        0 (0.0\%)  & \textcolor{red}{?} & \textcolor{red}{?} & \textcolor{red}{?} & \textcolor{red}{?} & \textcolor{red}{?} & \NN
+OpenSSH                             & C               &      102K &      396 &        0 (0.00\%) &        0 (0.0\%)  &  &  &  &  &  & \NN
+SPECINT2006                         & C, \cpp{}       &      258K &      466 &        0 (0.00\%) &        0 (0.0\%)  &  &  &  &  &  & \NN
+libxml2                             & C               &      231K &      184 &        0 (0.00\%) &        0 (0.0\%)  &  &  &  &  &  & \NN
+% libxml2 (including alloc_size)      & C               &      231K &      184 &        3 (0.00\%) &        1 (0.5\%)  & \textcolor{red}{?} & \textcolor{red}{?} & \textcolor{red}{?} &  & \checkmark & \NN
+rsync                               & C               &       41K &      105 &        3 (0.01\%) &        2 (1.9\%)  &  &  &  &  & \checkmark & Only required change is a bug-fix\NN
+SQLite                              & C               &      201K &      300 &       20 (0.01\%) &        2 (0.7\%)  &  &  &  &  &  & \NN
+OpenSSL                             & C, ASM          &      290K &      952 &       42 (0.01\%) &        3 (0.3\%)  &  & \checkmark &  & \checkmark &  & \NN
+PostgreSQL                          & C               &      739K &    1,945 &      803 (0.11\%) &       96 (4.9\%)  &  & \checkmark &  &  & \checkmark & \textgreater~50\% changes non-essential\NN
+NGINX                               & C               &      132K &      334 &      145 (0.11\%) &       26 (7.8\%)  & \checkmark & \checkmark & \checkmark &  &  & $\approx$~50\% changes non-essential\NN
+% FreeBSD kernel (hybrid, all files)  & C, ASM          &    5,530K &   12,252 &   31,738 (0.57\%) &      626 (5.1\%)  & \checkmark & \checkmark & \checkmark &  & \checkmark & \NN
+% FreeBSD kernel (pure, all files)    & C, ASM          &    5,513K &   12,211 &   36,287 (0.66\%) &      740 (6.1\%)  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \NN
+FreeBSD kernel (hybrid)             & C, ASM          &    2,457K &    7,690 &   29,640 (1.21\%) &      485 (6.3\%)  & \checkmark & \checkmark & \checkmark &  & \checkmark & \NN
+FreeBSD kernel (pure)               & C, ASM          &    2,440K &    7,651 &   34,105 (1.40\%) &      590 (7.7\%)  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \NN
+FreeBSD libc                        & C, ASM          &      211K &    1,890 &    3,199 (1.51\%) &      195 (10.3\%)  & \checkmark & \checkmark & \checkmark & \checkmark &  & \NN
+ICU4C                               & \cpp{}, C       &      534K &    1,553 &       17 (0.00\%) &        5 (0.3\%)  &  &  &  &  & \checkmark & No CHERI-specific changes\NN
+QtBase                              & \cpp{}, C       &    1,504K &    5,116 &      530 (0.04\%) &       51 (1.0\%)  & \checkmark & \checkmark & \checkmark &  & \checkmark & \NN
+QtWebkit                            & \cpp{}, C       &    1,665K &   13,177 &    1,661 (0.10\%) &      106 (0.8\%)  & \checkmark & \checkmark & \checkmark &  & \checkmark & Many changes for split register file\NN
+\libcxx (lib only)                  & \cpp{}          &      114K &      227 &      133 (0.12\%) &       17 (7.5\%)  &  & \checkmark &  & \checkmark &  & \textgreater~20\% changes for \name\NN
+% \libcxx (full)                      & \cpp{}          &      555K &    6,668 &      784 (0.14\%) &      212 (3.2\%)  &  & \checkmark &  & \checkmark & \checkmark & \textgreater~60\% test changes non-essential\NN
+\libcxx (test suite)                & \cpp{}          &      429K &    6,328 &      651 (0.15\%) &      195 (3.1\%)  &  & \checkmark &  & \checkmark & \checkmark & \textgreater~60\% changes non-essential\NN
+compiler-rt                         & \cpp{}, C, ASM  &      130K &    1,066 &    2,359 (1.81\%) &      217 (20.4\%)  & \checkmark &  & \checkmark &  &  & \LL
+
+\end{tabular}
+\caption{FOO}
+\label{tab:cheri-compat-changes}
+\end{table}

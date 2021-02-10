@@ -8,3 +8,9 @@ The Git repositories, revisions, and cloc flags can be defined in the `projects`
 The script will generate a set of JSON reports, a LaTex table with the changes and another LaTeX file with
 macros containing the change percentages.
 The script currently expects all git repositories that are being analyzed to be checked out under `~/cheri`
+
+
+# Requirements:
+[cloc](https://github.com/AlDanial/cloc) 1.88 or newer.
+If you are using the submodule you need to install the perl package `Parallel::ForkManager` and `Regexp::Common` as well.
+On macOS this can be done using `cpanm Parallel::ForkManager Regexp::Common`.

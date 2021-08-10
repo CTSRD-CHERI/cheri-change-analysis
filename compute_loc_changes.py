@@ -10,10 +10,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import OrderedDict
+import hashlib
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import *
+from typing import Dict, List, Optional, Union
 
 import dacite
 
@@ -29,8 +30,8 @@ class GitRef:
             rev_parsed = subprocess.check_output(["git", "-C", str(git_repo), "rev-parse", self.branch]).decode(
                 "utf-8").strip()
             if rev_parsed != self._hash:
-                print("BRANCH HASH", rev_parsed, "DOES NOT MATCH EXPECTED VALUE (updates since last check?)",
-                      self._hash, file=sys.stderr)
+                print("BRANCH HASH", rev_parsed, "FOR", self.branch,
+                      "DOES NOT MATCH EXPECTED VALUE (updates since last check?)", self._hash, file=sys.stderr)
             self.__verified = True
         return self._hash
 
@@ -61,10 +62,12 @@ class ClocDiff:
 
 @dataclass
 class CLOCReport:
-    project: "Project"
-    baseline_raw: Optional[dict]
-    cheri_raw: Optional[dict]
-    diff_raw: Optional[dict]
+    project: "ProjectBase"
+    baseline_raw: dict
+    cheri_raw: Optional[dict] = None
+    cheri: Optional[ClocSummary] = None
+    diff_raw: Optional[dict] = None
+    diff: Optional[ClocDiff] = None
     languages: Dict[str, int] = field(default_factory=dict)
 
     @staticmethod
@@ -81,9 +84,8 @@ class CLOCReport:
 
     def __post_init__(self):
         # print(self)
-        if self.baseline_raw is not None:
-            self._parse_languages(self.baseline_raw)
-            self.baseline = dacite.from_dict(ClocSummary, self.baseline_raw["SUM"])
+        self._parse_languages(self.baseline_raw)
+        self.baseline = dacite.from_dict(ClocSummary, self.baseline_raw["SUM"])
         if self.cheri_raw is not None:
             self.cheri = dacite.from_dict(ClocSummary, self.cheri_raw["SUM"])
         if self.diff_raw is not None:
@@ -95,11 +97,11 @@ class CLOCReport:
                 assert self.changed_files_abs == 0, self
 
     @staticmethod
-    def no_chages_report(name, languages: Dict[str, int], cloc_result: ClocSummary) -> "CLOCReport":
+    def no_changes_report(name, languages: Dict[str, int], cloc_result: ClocSummary) -> "CLOCReport":
         p = Project("invalid", project_name=name, baseline=None, cheri=None,
                     extra_efficiency=False, extra_offset=False, extra_ptrcmp=False, extra_cherish=False,
                     extra_other=False)
-        result = CLOCReport(p, None, None, None)
+        result = CLOCReport(p, dict(), None, None)
         result.languages = languages
         result.baseline = copy.deepcopy(cloc_result)
         result.cheri = copy.deepcopy(cloc_result)
@@ -109,15 +111,15 @@ class CLOCReport:
 
     def print_info(self):
         print("------- ", self.project.project_name, "--------------")
-        print("TOTAL SLOC          ", self.baseline.code)
-        print("SLOC CHANGED        ", self.changed_loc_abs)
-        print("SLOC CHANGED %      ", self.changed_loc_percent)
+        print("Languages          ", " ".join(f"{v*100:.2f}% {k}" for k, v in self.language_ratios.items()))
+        print(f"TOTAL SLOC          {self.baseline.code:,}")
+        print(f"SLOC CHANGED        {self.changed_loc_abs:,}")
+        print(f"SLOC CHANGED %      {self.changed_loc_percent:,}")
 
-        print("TOTAL FILES         ", self.baseline.nFiles)
-        print("SLOC / FILE         ", self.baseline.code / self.baseline.nFiles)
-
-        print("FILES CHANGED       ", self.changed_files_abs)
-        print("FILES CHANGED %     ", self.changed_files_percent)
+        print(f"TOTAL FILES         {self.baseline.nFiles:,}")
+        print(f"SLOC / FILE         {self.baseline.code / self.baseline.nFiles:,}")
+        print(f"FILES CHANGED       {self.changed_files_abs:,}")
+        print(f"FILES CHANGED %     {self.changed_files_percent:,}")
         print("-----------------------------\n")
 
     @property
@@ -126,10 +128,14 @@ class CLOCReport:
 
     @property
     def changed_loc_abs(self):
+        if self.diff is None:
+            return 0
         return self.diff.modified.code + self.diff.added.code + self.diff.removed.code
 
     @property
     def changed_files_abs(self):
+        if self.diff is None:
+            return 0
         # added and removed is not reliable, only look at modified files
         return self.diff.modified.nFiles
 
@@ -221,36 +227,76 @@ class CLOCReport:
             self.baseline.code / 1000.0, self.baseline.nFiles,
             # TODO: skip changed_files_percent?
             self.changed_loc_abs, self.changed_loc_percent, self.changed_files_abs, self.changed_files_percent)
-        if self.project.extra_override_text:
-            assert self.project.extra_efficiency is None
-            assert self.project.extra_offset is None
-            assert self.project.extra_ptrcmp is None
-            assert self.project.extra_cherish is None
-            assert self.project.extra_other is None
-            assert self.project.extra_notes is None
-            xtra = " & \\multicolumn{6}{l}{" + self.project.extra_override_text + "}"
+        if not isinstance(self.project, Project):
+            xtra = " & & & & & &"
         else:
-            xtra = " & {} & {} & {} & {} & {} & {}".format(
-                self.optional_str(self.project.extra_efficiency),
-                self.optional_str(self.project.extra_offset),
-                self.optional_str(self.project.extra_ptrcmp),
-                self.optional_str(self.project.extra_cherish),
-                self.optional_str(self.project.extra_other),
-                self.project.extra_notes or "",
-            )
+            if self.project.extra_override_text:
+                assert self.project.extra_efficiency is None
+                assert self.project.extra_offset is None
+                assert self.project.extra_ptrcmp is None
+                assert self.project.extra_cherish is None
+                assert self.project.extra_other is None
+                assert self.project.extra_notes is None
+                xtra = " & \\multicolumn{6}{l}{" + self.project.extra_override_text + "}"
+            else:
+                xtra = " & {} & {} & {} & {} & {} & {}".format(
+                    self.optional_str(self.project.extra_efficiency),
+                    self.optional_str(self.project.extra_offset),
+                    self.optional_str(self.project.extra_ptrcmp),
+                    self.optional_str(self.project.extra_cherish),
+                    self.optional_str(self.project.extra_other),
+                    self.project.extra_notes or "",
+                )
         return base + xtra
 
 
+class ProjectBase:
+    project_name: str
+    commented: bool
+    no_cheri_specific_changes: bool
+
+    @property
+    def no_cheri_specific_changes(self) -> bool:
+        raise NotImplementedError()
+
+    def run_cloc(self) -> CLOCReport:
+        raise NotImplementedError()
+
+    @staticmethod
+    def _parse_json(json_base: Path, suffix: Optional[str], optional: bool = False) -> Optional[dict]:
+        if suffix is None:
+            json_file = json_base
+            final_file = json_base
+        else:
+            json_file = json_base.with_name(json_base.name + suffix)
+            final_file = json_file.with_name(json_file.name + ".json")
+        if not json_file.is_file() and final_file.is_file():
+            # renamed report exists, but new file doesnt
+            json_file = final_file
+        if optional and not json_file.exists():
+            return None
+        assert json_file.exists(), json_file
+        with json_file.open("r") as jf:
+            result = json.load(jf)
+        # Ensure the json is sorted in the output
+        with final_file.open("w") as jf:
+            # print(json.dump(result, jf, sort_keys=True, ensure_ascii=False, indent=2))
+            json.dump(result, jf, sort_keys=True, ensure_ascii=False, indent=2)
+        if json_file != final_file:
+            json_file.unlink()
+        return result
+
 @dataclass
-class Project:
+class Project(ProjectBase):
     repo_subdir: str
     project_name: str
-    baseline: Optional[GitRef]
-    cheri: Optional[GitRef]
-    cheri_minimal: GitRef = None
-    cheri_no_offset: GitRef = None
+    baseline: GitRef
+    cheri: GitRef
+    cheri_minimal: Optional[GitRef] = None
+    cheri_no_offset: Optional[GitRef] = None
     extra_cloc_args: List[str] = field(default_factory=list)
     commented: bool = False
+    no_cheri_specific_changes: bool = False
     latex_project_name: Optional[str] = None
     extra_efficiency: Optional[Union[bool, str]] = None
     extra_offset: Optional[Union[bool, str]] = None
@@ -263,12 +309,15 @@ class Project:
     def run_cloc(self) -> CLOCReport:
         git_repo = args.source_root / self.repo_subdir
         assert git_repo.is_dir(), git_repo
-        out_json = Path(this_dir, "reports", self.project_name + ".report.json")
+        out_json = Path(this_dir, "reports", self.project_name + ".report")
         diff_json_suffix = ".diff." + self.baseline.hash(git_repo) + "." + self.cheri.hash(git_repo)
         diff_json_file = out_json.with_name(out_json.name + diff_json_suffix + ".json")
-        # Don't run CLOC if the diff json already exists
-        run_cloc = not diff_json_file.exists()
-        cloc_cmd = [str(this_dir.absolute() / "cloc/cloc"), "--include-lang=C,C++,C/C++ Header,Assembly",
+        baseline_json_file = out_json.with_name(out_json.name + "." + self.baseline.hash(git_repo) + ".json")
+        cheri_json_file = out_json.with_name(out_json.name + "." + self.cheri.hash(git_repo) + ".json")
+        # Don't run CLOC if the diff json already exists (or if there is no diff and both others exist
+        skip_cloc = diff_json_file.exists() or (baseline_json_file.exists() and cheri_json_file.exists())
+        cloc_cmd = [args.cloc,
+                    "--include-lang=C,C++,C/C++ Header,Assembly",
                     "--out=" + str(out_json),
                     "--skip-uniqueness",  # should not be needed
                     "--processes=" + str(multiprocessing.cpu_count()),
@@ -280,7 +329,7 @@ class Project:
                     "--verbose=1",  # "--verbose=2",
                     "--file-encoding=UTF-8", "--json", "--git", "--count-and-diff",
                     self.baseline.hash(git_repo), self.cheri.hash(git_repo)] + self.extra_cloc_args
-        if run_cloc:
+        if not skip_cloc:
             print("Running: ", " ".join(map(shlex.quote, cloc_cmd)))
             with tempfile.TemporaryDirectory() as td:
                 new_env = os.environ.copy()
@@ -294,27 +343,93 @@ class Project:
             print("Delete", diff_json_file, "to force new analysis run")
         baseline_json = self._parse_json(out_json, "." + self.baseline.hash(git_repo))
         cheri_json = self._parse_json(out_json, "." + self.cheri.hash(git_repo))
-        diff_json = self._parse_json(out_json, diff_json_suffix)
+        diff_json = self._parse_json(out_json, diff_json_suffix, optional=True)
         result = CLOCReport(project=self, baseline_raw=baseline_json, cheri_raw=cheri_json,
                             diff_raw=diff_json)
         return result
 
-    @staticmethod
-    def _parse_json(json_base: Path, suffix) -> dict:
-        json_file = json_base.with_name(json_base.name + suffix)
-        final_file = json_file.with_name(json_file.name + ".json")
-        if not json_file.is_file() and final_file.is_file():
-            # renamed report exists, but new file doesnt
-            json_file = final_file
-        assert json_file.exists(), json_file
-        with json_file.open("r") as jf:
-            result = json.load(jf)
-        # Ensure the json is sorted in the output
-        with final_file.open("w") as jf:
-            # print(json.dump(result, jf, sort_keys=True, ensure_ascii=False, indent=2))
-            json.dump(result, jf, sort_keys=True, ensure_ascii=False, indent=2)
-        if json_file != final_file:
-            json_file.unlink()
+@dataclass
+class UnmodifiedProject(ProjectBase):
+    repo_subdir: str
+    project_name: str
+    baseline: GitRef
+    extra_cloc_args: List[str] = field(default_factory=list)
+    commented: bool = False
+    latex_project_name: Optional[str] = None
+
+    @property
+    def no_cheri_specific_changes(self):
+        return True
+
+    def run_cloc(self) -> CLOCReport:
+        git_repo = args.source_root / self.repo_subdir
+        assert git_repo.is_dir(), git_repo
+        basename_json = Path(this_dir, "reports", self.project_name + ".report")
+        result_json = Path(basename_json.parent, basename_json.name + "." + self.baseline.hash(git_repo) + ".json")
+        # Don't run CLOC if the json already exists
+        run_cloc = not result_json.exists()
+        cloc_cmd = [args.cloc,
+                    "--include-lang=C,C++,C/C++ Header,Assembly",
+                    "--out=" + str(result_json),
+                    "--processes=" + str(multiprocessing.cpu_count()),
+                    # Ignore generated files (might ignore some generators though).
+                    # Hopefully most are not C/C++ (except Qt's moc)
+                    "--exclude-content=\\bDO NOT EDIT\\b",
+                    "--verbose=1",  # "--verbose=2",
+                    "--file-encoding=UTF-8", "--json", "--git",
+                    self.baseline.hash(git_repo)] + self.extra_cloc_args
+        if run_cloc:
+            print("Running: ", " ".join(map(shlex.quote, cloc_cmd)))
+            subprocess.check_call(cloc_cmd, cwd=str(git_repo))
+        else:
+            print("CLOC report found, not re-running analysis for ", self.project_name)
+            print("Not running: ", " ".join(map(shlex.quote, cloc_cmd)))
+            print("Delete", result_json, "to force new analysis run")
+        baseline_json = self._parse_json(basename_json, "." + self.baseline.hash(git_repo))
+        assert baseline_json is not None
+        result = CLOCReport(project=self, baseline_raw=baseline_json)
+        return result
+
+@dataclass
+class UnmodifiedDirectories(ProjectBase):
+    directories: List[str]
+    project_name: str
+    base_directory: Optional[str] = None
+    extra_cloc_args: List[str] = field(default_factory=list)
+    commented: bool = False
+    latex_project_name: Optional[str] = None
+
+    @property
+    def no_cheri_specific_changes(self):
+        return True
+
+    def run_cloc(self) -> CLOCReport:
+        # Add a suffix so that we re-run analysis if the list of dirs changes
+        all_dirs = "".join(sorted(self.directories))
+        report_suffix = hashlib.sha1(all_dirs.encode("utf-8")).hexdigest()
+        result_json = Path(this_dir, "reports", f"{self.project_name}.report.{report_suffix}.json")
+        # Don't run CLOC if the json already exists
+        run_cloc = not result_json.exists()
+        cloc_cmd = [args.cloc,
+                    "--include-lang=C,C++,C/C++ Header,Assembly",
+                    "--out=" + str(result_json),
+                    "--processes=" + str(multiprocessing.cpu_count()),
+                    # Ignore generated files (might ignore some generators though).
+                    # Hopefully most are not C/C++ (except Qt's moc)
+                    "--exclude-content=\\bDO NOT EDIT\\b",
+                    "--verbose=1",  # "--verbose=2",
+                    "--file-encoding=UTF-8", "--json"] + self.extra_cloc_args + self.directories
+        if run_cloc:
+            print("Running: ", " ".join(map(shlex.quote, cloc_cmd)))
+            cwd = args.source_root if self.base_directory is None else args.source_root / self.base_directory
+            subprocess.check_call(cloc_cmd, cwd=str(cwd))
+        else:
+            print("CLOC report found, not re-running analysis for ", self.project_name)
+            print("Not running: ", " ".join(map(shlex.quote, cloc_cmd)))
+            print("Delete", result_json, "to force new analysis run")
+        baseline_json = self._parse_json(result_json, None)
+        assert baseline_json is not None
+        result = CLOCReport(project=self, baseline_raw=baseline_json)
         return result
 
 
@@ -348,6 +463,7 @@ def default_repos_root() -> Path:
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--verbose", action="store_true")
+parser.add_argument("--cloc", default=str(this_dir.absolute() / "cloc/cloc"))
 parser.add_argument("--source-root", type=lambda x: Path(x).absolute(), default=default_repos_root())
 args = parser.parse_args()
 
@@ -371,12 +487,12 @@ thesis_projects = [
             extra_efficiency=False, extra_offset=False, extra_ptrcmp=False, extra_cherish=False, extra_other=False),
     # Project("qt5/qtbase", project_name="QtBase",
     #        baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
-    #        cheri=GitRef("5.10", "33de53d5ec4c3f58b4960e835911215388e38235"),
+    #        cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
     #        # Ignore the giant sqlite.c file since it will time out
     #        extra_cloc_args=["--not-match-f=/src/3rdparty/sqlite/sqlite3.c"]),
     Project("qt5/qtbase", project_name="QtBase (excluding tests)", latex_project_name="QtBase",
             baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
-            cheri=GitRef("5.10", "33de53d5ec4c3f58b4960e835911215388e38235"),
+            cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
             # Ignore the giant sqlite.c file since it will time out
             extra_cloc_args=["--match-d=/(src|include)(/|$)", "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
             extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=True),
@@ -469,25 +585,382 @@ thesis_projects = [
 # endregion
 
 # Enter you projects here:
-projects = [
-    Project("nginx", project_name="NGINX",
-            baseline=GitRef("baseline", "ff16c6f99c6cc0959d1632fb4030730ba27657ef"),
-            cheri=GitRef("master", "d5794c5167f10e2230078dd798e4033beb1b1b6b"),
-            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=False,
-            extra_notes="$\\approx$~50\\% changes non-essential"),
+# projects: List[ProjectBase] = [
+#     Project("nginx", project_name="NGINX",
+#             baseline=GitRef("baseline", "ff16c6f99c6cc0959d1632fb4030730ba27657ef"),
+#             cheri=GitRef("master", "d5794c5167f10e2230078dd798e4033beb1b1b6b"),
+#             extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=False,
+#             extra_notes="$\\approx$~50\\% changes non-essential"),
+# ]
+
+# region  Data for DSbD report
+dsbd_non_total_count_projects: List[ProjectBase] = [
+    Project("qt5/qtbase", project_name="QtBase 5.15 (everything)",
+            baseline=GitRef("baseline-5.15", "970c51ec4861f20ebb33f5299298857669c92aad"),
+            cheri=GitRef("5.15", "d9424709b6be50aa093d9d021cd126bd6570ec96"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_notes="Lots of changes"),
+
+    Project("qt5/qtbase", project_name="QtBase 5.10 (src only)",
+            baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
+            cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(src|include)(/|$)", "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=True),
+    Project("qt5/qtbase", project_name="QtBase 5.10 (tests only)",
+            baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
+            cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(tests)(/|$)",
+                             "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=True),
+    Project("qt5/qtbase", project_name="QtBase 5.10 (examples only)",
+            baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
+            cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(examples)(/|$)",
+                             "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=True),
+    Project("qt5/qtbase", project_name="QtBase 5.10 (everything)",
+            baseline=GitRef("upstream/5.10", "4ba535616b8d3dfda7fbe162c6513f3008c1077a"),
+            cheri=GitRef("5.10-thesis", "33de53d5ec4c3f58b4960e835911215388e38235"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_efficiency=True, extra_offset=True, extra_ptrcmp=True, extra_cherish=False, extra_other=True),
+    Project("xvnc-server", project_name="XVnc server (all)",
+            baseline=GitRef("xorg-server-1.20.12", "5e516c7be478eb66088e9898407202b07ba8c790"),
+            cheri=GitRef("server-1.20-branch", "1250bc8fdb1ecb1b94e29c32e3d15403ee0c64fc"),
+            extra_cloc_args=[],
+            extra_notes="Fix realloc"),
+]
+for p in dsbd_non_total_count_projects:
+    p.commented = True
+
+dsbd_projects: List[ProjectBase] = [
+    Project("qt5/qtsvg", project_name="QtSvg",
+            baseline=GitRef("baseline", "aceea78cc05ac8ff947cee9de8149b48771781a8"),
+            cheri=GitRef("5.15", "05a9d31286044c18acbc93cd996e7db23ff3cff6"),
+            extra_notes="Fix out-of-bounds read for empty strings"),
+    Project("qt5/qtdeclarative", project_name="QtDeclarative",
+            baseline=GitRef("baseline", "6683c414c5cc6ab46197c41bb1361c518ca84d3e"),
+            cheri=GitRef("5.15", "f968686b677a07728173985043ec0c6c0a2a1485"),
+            extra_notes="Lots of changes"),
+    Project("qt5/qtgraphicaleffects", project_name="QtGraphicalEffects",
+            baseline=GitRef("baseline", "c36998dc1581167b12cc3de8e4ac68c2a5d9f76e"),
+            cheri=GitRef("5.15", "7dffbb886337c3527956f3ff32e35ab2e9979aa0"),
+            extra_notes="Lots of changes", no_cheri_specific_changes=True),
+
+    Project("qt5/qtbase", project_name="QtBase 5.15 (src only)",
+            baseline=GitRef("baseline-5.15", "970c51ec4861f20ebb33f5299298857669c92aad"),
+            cheri=GitRef("5.15", "d9424709b6be50aa093d9d021cd126bd6570ec96"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(src|include)(/|$)", "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_notes="Lots of changes"),
+    Project("qt5/qtbase", project_name="QtBase 5.15 (tests only)",
+            baseline=GitRef("baseline-5.15", "970c51ec4861f20ebb33f5299298857669c92aad"),
+            cheri=GitRef("5.15", "d9424709b6be50aa093d9d021cd126bd6570ec96"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(tests)(/|$)",
+                             "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_notes="Lots of changes"),
+    Project("qt5/qtbase", project_name="QtBase 5.15 (examples only)",
+            baseline=GitRef("baseline-5.15", "970c51ec4861f20ebb33f5299298857669c92aad"),
+            cheri=GitRef("5.15", "d9424709b6be50aa093d9d021cd126bd6570ec96"),
+            # Ignore the giant sqlite.c file since it will time out
+            extra_cloc_args=["--match-d=/(examples)(/|$)",
+                             "--not-match-f=/src/3rdparty/sqlite/sqlite3.c"],
+            extra_notes="Lots of changes"),
+
+    UnmodifiedProject("tigervnc", project_name="TigerVNC",
+                      baseline=GitRef("master", "dccb95f345f7a9c5aa785a19d1bfa3fdecd8f8e0")),
+    Project("xvnc-server", project_name="XVnc server",
+            baseline=GitRef("xorg-server-1.20.12", "5e516c7be478eb66088e9898407202b07ba8c790"),
+            cheri=GitRef("server-1.20-branch", "1250bc8fdb1ecb1b94e29c32e3d15403ee0c64fc"),
+            extra_cloc_args=["--fullpath", "--not-match-d=/hw/.*"],
+            extra_notes="Fix realloc"),
+
+    Project("libxfont", project_name="LibXFont",
+            baseline=GitRef("baseline", "ce7a3265019e4d66198c1581d9e8c859c34e8ef1"),
+            cheri=GitRef("master", "daff8876379c64c7bee126319af804896f83b5da"),
+            extra_notes="Fix OOB read"),
+
+    Project("xorgproto", project_name="xorgproto",
+            baseline=GitRef("xorgproto-2021.4.99.2", "47cc19608e6dde565296ed46839105663eae772f"), # "9cd746bd0d5c23f0929342cb3cbe17f0c8407d37"),
+            cheri=GitRef("master", "a0ed054ee2c334941dfe9eaa7bcfdbbe6907e1b5"),
+            extra_notes="Fix 64-bit long detection",
+            extra_cloc_args=["--force-lang=C,h"]),  # only contains C headers
+    Project("libx11", project_name="LibX11",
+            baseline=GitRef("baseline", "401f58f8ba258d4e7ce56a8f756595b72e544c15"),
+            cheri=GitRef("my-fdo-fork/fix-realloc-ub", "d01d23374107f6fc55511f02559cf75be7bdf448"),
+            extra_notes="Fix 64-bit long detection and realloc abuse"),
+    Project("libxt", project_name="LibXt",
+            baseline=GitRef("libXt-1.2.1", "edd70bdfbbd16247e3d9564ca51d864f82626eb7"),
+            cheri=GitRef("master", "1d5bb760ee996927dd5dfa5b3c219b3d6ef63d11"),
+            extra_notes="fix long detection and Fix long vs pointer"),
+
+
+    # Desktop
+    Project("kde-frameworks/kwin", project_name="KWin (security fix)",
+            baseline=GitRef("mykde/master", "2ba13f4a089b4ab4d833a8d1fbb7e05cf5b52ee0"),
+            cheri=GitRef("master", "00b832a19ef10f8050cf1bf4144b17e514f457b7"),
+            extra_notes="fix long detection and Fix long vs pointer"),
+    Project("kde-frameworks/kwin", project_name="KWin (build system + optional)",
+            baseline=GitRef("baseline", "ed57ac39e2ac98aee56e4f44789e3199df11a117"),
+            cheri=GitRef("mykde/master", "2ba13f4a089b4ab4d833a8d1fbb7e05cf5b52ee0"),
+            extra_notes="fix long detection and Fix long vs pointer", commented=True),
+
+    Project("kde-frameworks/plasma-framework", project_name="Plasma-framework",
+            baseline=GitRef("upstream/master", "75c31c08d560d51fcdeba2dc3d54e5c9d31fb3ca"),
+            cheri=GitRef("mykde/master", "eea1c51ab140c193d8e4da8f0347f7d9bbee3dae"),
+            extra_notes="misc optional deps", no_cheri_specific_changes=True),
+    Project("kde-frameworks/plasma-workspace", project_name="Plasma-workspace",
+            baseline=GitRef("upstream/master", "270fe778fabc656e58d287e6b1221a3755e54106"),
+            cheri=GitRef("mykde/master", "3c8f68f43086e919b65204d00fafd90381481197"),
+            extra_notes="misc", no_cheri_specific_changes=True),
+    Project("kde-frameworks/plasma-desktop", project_name="Plasma-desktop",
+            baseline=GitRef("upstream/master", "4dd957eb2d00fc9b6bea803c2997af409c7cb379"),
+            cheri=GitRef("mykde/master", "307ee111ca94d62649222626b2b0a9171e14eb84"),
+            extra_notes="misc", no_cheri_specific_changes=True),
+    # Apps
+    Project("kde-frameworks/dolphin", project_name="Dolphin",
+            baseline=GitRef("baseline", "d284e22f8730e98336fab515a339143341f55ec1"),
+            cheri=GitRef("dbus-fix", "3fdd93db97bab9ca15e65047d69774cfbfe22f27"),
+            extra_notes="dbus", no_cheri_specific_changes=True),
+    Project("kde-frameworks/gwenview", project_name="Gwenview",
+            baseline=GitRef("baseline", "a4f13057a0bcf189a3249f2ec8d6ca5a5bfb1a0f"),
+            cheri=GitRef("optional-deps", "4128e0baf993a154edeba7c8491684818ce039cc"),
+            extra_notes="dbus and opengl optional", no_cheri_specific_changes=True),
+    Project("kde-frameworks/okular", project_name="Okular",
+            baseline=GitRef("baseline", "21bc8bd023eee97dc7fbb34955488e0cf6214c04"),
+            cheri=GitRef("optional-deps", "3b3dc10a712683c7a27bc0cd3d64dee7dec0a2cc"),
+            extra_notes="dbus optional", no_cheri_specific_changes=True),
+    Project("kde-frameworks/systemsettings", project_name="Systemsettings",
+            baseline=GitRef("origin/master", "6047a73514ab75037d5217624fd31e0ee2ea79d8"),
+            cheri=GitRef("mykde/master", "dfda380f08abdf4fa67e4b1eb4f1627e7ee3ff68"),
+            extra_notes="dbus optional", no_cheri_specific_changes=True),
+
+    Project("poppler", project_name="Poppler",
+            baseline=GitRef("baseline", "f35567dc6033cf8f856f5694af058fda2528cbe7"),
+            cheri=GitRef("master", "cc1807002f038787de53a81128ab46a5d96ea759"),
+            extra_notes="Silence warning", no_cheri_specific_changes=True),
+    Project("fontconfig", project_name="fontconfig",
+            baseline=GitRef("my-fdo-fork/baseline", "3a7ad1b49f727eef20b3e3918794d984e367b619"),
+            cheri=GitRef("my-fdo-fork/cheri-fixes", "6c2bbc30672fb210565cb788b36480898b647398"),
+            extra_notes="c11 atomics and provenance fixes"),
+    Project("freetype2", project_name="freetype2",
+            baseline=GitRef("my-fdo-fork/baseline", "5d27b10f4c6c8e140bd48a001b98037ac0d54118"),
+            cheri=GitRef("my-fdo-fork/cheri-fixes", "f7c6a06cb7458c8972955ebd698058d0957a0a47"),
+            extra_notes="c11 atomics and provenance fixes"),
+    Project("libjpeg-turbo", project_name="libjpeg-turbo",
+            baseline=GitRef("mygithub/baseline", "4d9f256b0184bf8ee6e59e8cdf34c7d577d81b27"),
+            cheri=GitRef("mygithub/cheri-fixes", "a72816ed07d71e34de07324ede020780d73c5c21"),
+            extra_notes="Cast via uintptr_t for alignment"),
+    Project("libpng", project_name="libpng",
+            baseline=GitRef("origin/libpng16", "a37d4836519517bdce6cb9d956092321eca3e73b"),
+            cheri=GitRef("libpng16", "128a7128021d1aab082af720732023d4771fd8ac"),
+            extra_notes="Cast via uintptr_t"),
+    UnmodifiedProject("icewm", project_name="IceWM",
+            baseline=GitRef("icewm-1-4-BRANCH", "0af76ceb261ae1a5a2f863e2a5c5eee1b9de0be2")),
+]
+
+unmodified_frameworks = [
+    "attica",
+    "breeze",
+    "breeze-icons",
+    "extra-cmake-modules",
+    "kactivities",
+    "kactivities-stats",
+    "karchive",
+    "kauth",
+    "kbookmarks",
+    "kcmutils",
+    "kcodecs",
+    "kcompletion",
+    "kconfig",
+    "kconfigwidgets",
+    "kcoreaddons",
+    "kcrash",
+    "kdbusaddons",
+    "kdeclarative",
+    "kdecoration",
+    "kded",
+    "kfilemetadata",
+    "kframeworkintegration",
+    "kglobalaccel",
+    "kguiaddons",
+    "ki18n",
+    "kiconthemes",
+    "kidletime",
+    "kimageformats",
+    "kinit",
+    "kio",
+    "kio-extras",
+    "kirigami",
+    "kitemmodels",
+    "kitemviews",
+    "kjobwidgets",
+    "knewstuff",
+    "knotifications",
+    "knotifyconfig",
+    "kpackage",
+    "kparts",
+    "kpeople",
+    # "kpty",
+    # "kquickcharts",
+    "krunner",
+    "kscreenlocker",
+    "kservice",
+    "ksyndication",
+    "ksyntaxhighlighting",
+    "ktextwidgets",
+    "kunitconversion",
+    "kwidgetsaddons",
+    "kwindowsystem",
+    "kxmlgui",
+    "libkscreen",
+    "libksysguard",
+    "libqrencode",
+    "phonon",
+    #"plasma-desktop",
+    #"plasma-framework",
+    #"plasma-workspace",
+    "prison",
+    "qqc2-desktop-style",
+    "solid",
+    "sonnet",
+    "threadweaver",
+]
+print("unmodified_frameworks=", len(unmodified_frameworks))
+dsbd_projects.append(UnmodifiedDirectories(directories=unmodified_frameworks, project_name="unmodified framworks",
+                                           base_directory="kde-frameworks"))
+dsbd_projects.append(UnmodifiedDirectories(directories=["libxau", "libxcb", "libxtrans", "libxext", "libxfixes",
+                                                        "libxi", "libxrender", "libice", "libsm", "libxmu",
+                                                        "build/libxcb-riscv64-purecap-build"],
+                                           project_name="unmodified x11 pt1"))
+dsbd_projects.append(UnmodifiedDirectories(directories=["libxpm", "libxft", "libxrandr", "libxcomposite", "libxdamage",
+                                                        "libxcb-render-util", "xorg-macros", "libxcursor",
+                                                        "libxcb-keysyms", "libxcb-wm", "xbitmaps", "xkeyboard-config",
+                                                        "xcbproto", "libfontenc", "libxcb-cursor", "libxcb-image",
+                                                        "libxcb-util", "libxkbcommon", "libxkbfile", "libxtst",
+                                                        "xorg-font-util", "xorg-pthread-stubs"],
+                                           project_name="unmodified x11 pt2"))
+dsbd_projects.append(UnmodifiedDirectories(directories=["xev", "xeyes", "xprop", "xauth", "xkbcomp", "twm", "xsetroot"],
+                                           project_name="X11 programs"))
+dsbd_projects.append(UnmodifiedDirectories(directories=["openjpeg", "pixman", "lcms2", "libudev-devd", "mtdev",
+                                                        "libevdev", "libintl-lite", "libexpat",
+                                                        "libinput", "shared-mime-info", "exiv2", "epoll-shim",
+                                                        "qt5/qtx11extras", "qt5/qtquickcontrols2",
+                                                        "qt5/qttools", "qt5/qtquickcontrols"],
+                                           project_name="unmodified libraries"))
+projects = dsbd_non_total_count_projects + dsbd_projects
+# endregion
+
+all_cheribuild_targets = [
+    "attica", "breeze", "breeze-icons", "dolphin", "epoll-shim", "exiv2", "extra-cmake-modules",
+    "fontconfig", "freetype2", "gwenview", "icewm", "kactivities", "kactivities-stats", "karchive", "kauth",
+    "kbookmarks", "kcmutils", "kcodecs", "kcompletion", "kconfig", "kconfigwidgets", "kcoreaddons", "kcrash",
+    "kdbusaddons", "kdeclarative", "kdecoration", "kded", "kfilemetadata", "kframeworkintegration", "kglobalaccel",
+    "kguiaddons", "ki18n", "kiconthemes", "kidletime", "kimageformats", "kinit", "kio", "kio-extras", "kirigami",
+    "kitemmodels", "kitemviews", "kjobwidgets", "knewstuff", "knotifications", "knotifyconfig", "kpackage", "kparts",
+    "kpeople", "krunner", "kscreenlocker", "kservice", "ksyndication", "ksyntaxhighlighting", "ktextwidgets",
+    "kunitconversion", "kwidgetsaddons", "kwin", "kwindowsystem", "kxmlgui", "lcms2", "libevdev", "libexpat",
+    "libfontenc", "libice", "libinput", "libintl-lite", "libjpeg-turbo", "libkscreen", "libksysguard", "libpng",
+    "libqrencode", "libsm", "libudev-devd", "libx11", "libxau", "libxcb", "libxcb-cursor", "libxcb-image",
+    "libxcb-keysyms", "libxcb-render-util", "libxcb-util", "libxcb-wm", "libxcomposite", "libxcursor", "libxdamage",
+    "libxext", "libxfixes", "libxfont", "libxft", "libxi", "libxkbcommon", "libxkbfile", "libxmu", "libxpm",
+    "libxrandr", "libxrender", "libxt", "libxtrans", "libxtst", "mtdev", "okular", "openjpeg", "phonon", "pixman",
+    "plasma-desktop", "plasma-framework", "plasma-workspace", "poppler", "prison", "qqc2-desktop-style", "qtbase",
+    "qtdeclarative", "qtgraphicaleffects", "qtquickcontrols", "qtquickcontrols2", "qtsvg", "qttools", "qtx11extras",
+    "shared-mime-info", "solid", "sonnet", "sqlite", "systemsettings", "threadweaver", "tigervnc", "twm", "xbitmaps",
+    "xcbproto", "xev", "xeyes", "xkbcomp", "xkeyboard-config", "xorg-font-util", "xorg-macros", "xorg-pthread-stubs",
+    "xorgproto", "xprop", "xsetroot", "xvnc-server",
+    # Fake target for the generated xcb C source code:
+    "libxcb-riscv64-purecap-build",
+    "xauth",  # needed for ssh forwarding
 ]
 
 reports = []
+missing_projects = set(all_cheribuild_targets)
+missing_projects.remove("sqlite")  # ignore sqlite since it was not ported as part of this project
 for project in projects:
     reports.append(project.run_cloc())
+    if isinstance(project, (Project, UnmodifiedProject)):
+        tgt = Path(project.repo_subdir).name
+        assert tgt in all_cheribuild_targets, "not in cheribuild targets: " + tgt
+        if tgt in missing_projects:
+            missing_projects.remove(tgt)
+    if isinstance(project, UnmodifiedDirectories):
+        for d in project.directories:
+            tgt = Path(d).name
+            assert tgt in all_cheribuild_targets, "not in cheribuild targets: " + tgt
+            if tgt in missing_projects:
+                missing_projects.remove(tgt)
+
+if missing_projects:
+    print("Did not include:", list(sorted(missing_projects)))
+    sys.exit(1)
+
 
 # No changes were required for SPEC or libxml2, these values are just a simple cloc count without the diff flag
-# reports.append(CLOCReport.no_chages_report("SPECINT2006", {"C": 218398, "C++": 25606},
+# reports.append(CLOCReport.no_changes_report("SPECINT2006", {"C": 218398, "C++": 25606},
 #                                            ClocSummary(blank=47386, comment=49755, code=258461, nFiles=466)))
-# reports.append(CLOCReport.no_chages_report("libxml2", {"C": 100},
+# reports.append(CLOCReport.no_changes_report("libxml2", {"C": 100},
 #                                            ClocSummary(blank=29407, comment=57482, code=231071, nFiles=184)))
+
+@dataclass
+class SummaryReport:
+    sloc: int = 0
+    files: int = 0
+    modified_sloc: int = 0
+    modified_files: int = 0
+    projects: list = field(default_factory=list)
+
+    def combine(self, report: CLOCReport, *, ignore_changes: bool = False) -> None:
+        """
+        :param report:
+        :param ignore_changes: when set only include the totals, but ignore changes
+        """
+        self.sloc += report.baseline.code
+        self.files += report.baseline.nFiles
+        if not ignore_changes:
+            self.modified_sloc += report.changed_loc_abs
+            self.modified_files += report.changed_files_abs
+        self.projects.append(report.project)
+
+total = SummaryReport()
+subset_totals: defaultdict[str, SummaryReport] = defaultdict(SummaryReport)
 for report in reports:
     report.print_info()
+    if not report.project.commented:
+        total.combine(report)
+        if report.project.no_cheri_specific_changes:
+            subset_totals["no CHERI"].combine(report)
+        subset_totals["CHERI"].combine(report, ignore_changes=report.project.no_cheri_specific_changes)
+        if report.main_language.startswith("?"):
+            raise ValueError()
+        subset_totals[f"{report.main_language}"].combine(report)
+        subset_totals[f"CHERI, {report.main_language}"].combine(report, ignore_changes=report.project.no_cheri_specific_changes)
+
+print("------- SUMMARY --------------")
+print(f"TOTAL SLOC            {total.sloc:,}")
+print(f"SLOC CHANGED          {total.modified_sloc:,}")
+print(f"SLOC CHANGED %        {100.0 * (total.modified_sloc / total.sloc):,}")
+print(f"FILES CHANGED         {total.modified_files:,}")
+print(f"FILES CHANGED %       {100.0 * (total.modified_files / total.files):,}")
+print(f"TOTAL FILES           {total.files:,}")
+print(f"SLOC / FILE           {total.sloc / total.files:,}")
+print("")
+for subset_name, summary in subset_totals.items():
+    print(f"TOTAL SLOC   ({subset_name})    {summary.sloc:,}")
+    print(f"SLOC CHANGED ({subset_name})    {summary.modified_sloc:,}")
+    print(f"SLOC CHANGED ({subset_name}) %  {100.0 * (summary.modified_sloc / summary.sloc):,}")
+    print(f"TOTAL FILES ({subset_name})     {summary.files:,}")
+    print(f"SLOC / FILE ({subset_name})     {summary.sloc / summary.files:,}")
+    print(f"FILES CHANGED ({subset_name})   {summary.modified_files:,}")
+    print(f"FILES CHANGED ({subset_name}) % {100.0 * (summary.modified_files / summary.files):,}")
+    print("")
+print("-----------------------------\n")
 
 # sort by number of changes, and if that's equal by number of SLOC
 reports.sort(key=operator.attrgetter('main_language', 'changed_loc_percent', 'changed_loc_abs'))
